@@ -11,7 +11,7 @@ $(document).ready(function () {
     var scripts = document.getElementsByTagName("script");
     for (var i = 0; i < scripts.length; i++) {
         var urlSplit = scripts[i].src.split("?");
-        if (urlSplit[0] == 'https://www.boodskapcdn.com/apptracker/js') {
+        if (urlSplit[0] == 'https://raw.githubusercontent.com/BoodskapPlatform/apptracker/master/apptracker.js') {
             var id = urlSplit[1].split("=");
             appID = id[1];
         }
