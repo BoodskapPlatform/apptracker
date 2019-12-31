@@ -4,7 +4,7 @@ var appID = "";
 var BASE_URL = "https://apimassdta.boodskap.io";
 var API_TOKEN = "RKZDQZJUWA:NpQaywSvC6ar";
 var RECORD_ID = 1000;
-
+var isActive =  true;
 $(document).ready(function () {
 
     /////////  Getting APP ID //////////////
@@ -30,6 +30,14 @@ $(document).ready(function () {
         }
     })
 
+    window.onfocus = function () {
+        isActive = true;
+     };
+    
+    window.onblur = function () {
+        isActive = false;
+     };
+
 });
 
 function UserInfo(data) {
@@ -41,6 +49,7 @@ function UserInfo(data) {
     data.pathname = window.location.pathname;
     data.createdtime = new Date().getTime();
     data.appid = appID;
+    data.pageactive = isActive
     console.log(data);
     insertRecord(data)
 }
