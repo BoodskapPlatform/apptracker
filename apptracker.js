@@ -1,5 +1,5 @@
 
-
+"use strict";
 var appID = "";
 var BASE_URL = "https://apimassdta.boodskap.io";
 var API_TOKEN = "RKZDQZJUWA:NpQaywSvC6ar";
