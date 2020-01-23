@@ -1,67 +1,109 @@
-
 "use strict";
 var appID = "";
-var BASE_URL = "https://apimassdta.boodskap.io";
-var API_TOKEN = "RKZDQZJUWA:NpQaywSvC6ar";
-var RECORD_ID = 1000;
-var isActive =  true;
-$(document).ready(function () {
+var isActive = true;
+var browserName = '';
+var OSName = "Unknown OS";
+var userCount = 0;
+var SessionID = '';
+var temp = '';
+var type = '';
+var UserName = ''
+var time = '';
+var URL = 'http://192.168.1.223:4006/apptracker';
 
-    /////////  Getting APP ID //////////////
+$(document).ready(function () {
+    ////// checking available CDN in index.html ////////
     var scripts = document.getElementsByTagName("script");
     for (var i = 0; i < scripts.length; i++) {
         var urlSplit = scripts[i].src.split("?");
         if (urlSplit[0] == 'https://raw.githubusercontent.com/BoodskapPlatform/apptracker/master/apptracker.js') {
-            var id = urlSplit[1].split("=");
+            var str = urlSplit[1].split("&");
+            var id = str[0].split('=');
+            time = Number(str[1].split('=')[1]);
             appID = id[1];
         }
     }
 
-    /////////  Adding CDN For User Details & Rest Call //////////////
     var jqueryCDN = document.createElement('script');
     jqueryCDN.setAttribute('src', 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js');
     document.head.appendChild(jqueryCDN);
-    $.ajax({
-        url: "https://ipapi.co/json?callback=UserInfo",
-        contentType: "application/json",
-        type: 'GET',
-        success: function (result) {
-            UserInfo(result)
-        }
-    })
+    ////set time interval dynamically
+    setInterval(function () {
+        $.ajax({
+            url: "/ipinfo",
+            contentType: "application/json",
+            type: 'POST',
+            success: function (result) {
 
-    window.onfocus = function () {
-        isActive = true;
-     };
-    
-    window.onblur = function () {
-        isActive = false;
-     };
+                // To find navigation start time for below browser
+                var isOpera = (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
+                var isFirefox = typeof InstallTrigger !== 'undefined';
+                var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) {
+                    return p.toString() === "[object SafariRemoteNotification]";
+                })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+                var isIE = false || !!document.documentMode;
+                var isEdge = !isIE && !!window.StyleMedia;
+                var isChrome = !!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime);
+
+                if (isIE === true) {
+                    browserName = "Internet Explorer"
+                }
+                if (isChrome) {
+                    browserName = "Chrome"
+                    SessionID = window.performance.timing.navigationStart
+                }
+                if (isEdge) {
+                    browserName = "Edge"
+                    SessionID = window.performance.timing.navigationStart
+                }
+                if (isFirefox) {
+                    browserName = "Firefox"
+                    SessionID = window.performance.timing.navigationStart
+                }
+                if (isSafari) {
+                    browserName = "Safari"
+                }
+                if (isOpera) {
+                    browserName = "Opera"
+                }
+
+                window.onfocus = function () {
+                    isActive = true;
+                };
+                window.onblur = function () {
+                    isActive = false;
+                };
+                result.result.href = window.location.href;
+                result.result.protocol = window.location.protocol;
+                result.result.host = window.location.host;
+                result.result.domain = window.location.hostname;
+                result.result.port = window.location.port;
+                result.result.pathname = window.location.pathname;
+                result.result.createdtime = new Date().getTime();
+                result.result.appid = appID;
+                result.result.screenresolution = screen.height + '*' + screen.width;
+                result.pageactive = isActive;
+                result.result.lang = document.documentElement.lang;
+                result.result.IsOnline = navigator.onLine;
+                result.result.userCount = userCount;
+                result.result.pageduration = SessionID;
+                //// Insert all result to platform
+                insertRecord(data);
+
+            }
+        });
+    }, time)
 
 });
 
-function UserInfo(data) {
-    data.href = window.location.href;
-    data.protocol = window.location.protocol;
-    data.host = window.location.host;
-    data.hostname = window.location.hostname;
-    data.port = window.location.port;
-    data.pathname = window.location.pathname;
-    data.createdtime = new Date().getTime();
-    data.appid = appID;
-    data.pageactive = isActive
-    console.log(data);
-    insertRecord(data)
-}
-
 function insertRecord(data) {
     $.ajax({
-        url: BASE_URL + '/record/insert/dynamic/' + API_TOKEN + '/' + RECORD_ID,
+        url: "/apptracker",
         data: JSON.stringify(data),
-        contentType: 'text/plain',
+        contentType: 'application/json',
         type: 'POST',
         success: function (result) {
-            console.log('Record inserted successfully')
+            console.log('App Tracking Last Reported Time:' + new Date())
         }
     })
 }
